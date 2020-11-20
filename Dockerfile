@@ -1,12 +1,30 @@
-FROM cabanaonline/alpine:1.0
+FROM staphb/mash:2.2
+
+USER root
 
 ARG USER=cabana
+ARG CABANA_USER_ID=1000
+ARG CABANA_GROUP_ID=1000
+
 ENV HOME /home/$USER
 
-# Downloads compiled libraries.
-RUN set -xe; \
-    \
-    git clone -b v2.2.2 https://github.com/marbl/Mash.git tools/mash
+# Creates work user.
+RUN \
+    addgroup --gid "${CABANA_GROUP_ID}" --quiet $USER; \
+    adduser --gid "${CABANA_GROUP_ID}" --uid ${CABANA_USER_ID} --disabled-password --gecos "" $USER;
+
+# Sets working directory.
+WORKDIR $HOME
+
+# Creates the tools folder.
+RUN mkdir data tools
+
+# Sets ownership.
+RUN chown -R $USER:$USER $HOME && \
+    mkdir -p $HOME/CABANA
+
+# Changes to work user.
+USER $USER
 
 # Entrypoint to keep the container running.
 ENTRYPOINT ["tail", "-f", "/dev/null"]
